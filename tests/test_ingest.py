@@ -5,6 +5,7 @@ from compression import zstd
 from pathlib import Path
 from tracker.storage import Store
 from tracker.ingest import ingest_file
+from tracker.export import export_all
 
 
 def event(kind, payload, ordinal, timestamp=100):
@@ -88,6 +89,29 @@ class IngestTests(unittest.TestCase):
             f.write(full[20:])
         ingest_file(self.store, self.path, 'root')
         self.assertEqual(sum(e['kind']=='turn_start' for e in self.store.events('root')), 1)
+
+    def test_malformed_nested_payloads_are_skipped_without_blocking_exports(self):
+        self.write([
+            event('session_meta',dict(id='root'),0),
+            event('event_msg',dict(type='task_started',turn_id='t'),1),
+            event('token_usage_record',dict(thread_id='root',response_id='bad-null',usage=None),2),
+            event('token_usage_record',dict(thread_id='root',response_id='bad-list',usage=[]),3),
+            event('response_item',dict(type='message',role='assistant',internal_chat_message_metadata_passthrough=['bad']),4),
+            event('response_item',dict(type='message',role='assistant',content=[dict(text=None)]),5),
+            event('token_usage_record',dict(thread_id='root',response_id='bad-nan',usage=dict(total_tokens=float('nan'))),6),
+            event('response_item',dict(type='message',id='valid',role='assistant',phase='final_answer',content=[dict(text='Valid reply')]),7),
+            event('token_usage_record',dict(thread_id='root',response_id='valid-token',usage=dict(total_tokens=10)),8),
+            event('event_msg',dict(type='task_complete',turn_id='t',duration_ms=10000),9,110),
+        ])
+        ingest_file(self.store,self.path,'root')
+        self.assertEqual(self.store.thread('root')['ingest_warnings'],5)
+        self.assertEqual(sum(e['kind']=='assistant_message' for e in self.store.events('root')),1)
+        self.assertEqual(sum(e['kind']=='token' for e in self.store.events('root')),1)
+        export_all(self.store,self.root/'exports')
+        snapshot=json.loads((self.root/'exports/dashboard-data.js').read_text(encoding='utf-8').split(' = ',1)[1].strip().removesuffix(';'))
+        self.assertEqual(snapshot['threads'][0]['total_tokens'],10)
+        self.assertEqual(snapshot['threads'][0]['chat_words'],2)
+        self.assertEqual(ingest_file(self.store,self.path,'root'),0)
 
     def test_message_text_is_not_retained(self):
         self.write([event('session_meta', dict(id='root'), 0), event('response_item', dict(type='message', id='a', role='assistant', phase='final_answer', content=[dict(type='output_text', text='PRIVATE SENTENCE')]), 1)])

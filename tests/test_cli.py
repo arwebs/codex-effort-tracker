@@ -13,6 +13,85 @@ from compression import zstd
 
 
 class CliTests(unittest.TestCase):
+    def test_first_collection_cutoff_excludes_historical_workspaces(self):
+        with tempfile.TemporaryDirectory() as temp:
+            config=dict(data_dir=temp)
+            store=Store(Path(temp)/'db')
+            try:
+                store.thread('old',dict(cwd='old-workspace',last_record_at=900))
+                store.thread('current',dict(cwd='current-workspace',last_record_at=1100))
+                store.db.commit()
+                value=dict(root='repository',complete=True,files={})
+                with patch('tracker.cli.time.time',return_value=1000),patch('tracker.cli.git_root',return_value=Path('repository')) as lookup,patch('tracker.cli.snapshot',return_value=value):
+                    refresh_code(store,config)
+                self.assertFalse(baseline_path(config,'old').exists())
+                self.assertTrue(baseline_path(config,'current').exists())
+                lookup.assert_called_once_with('current-workspace')
+                self.assertEqual(store.setting('collection_started_at'),1000)
+            finally:
+                store.close()
+
+    def test_collection_cutoff_survives_backfill_restart_and_receipt_changes(self):
+        with tempfile.TemporaryDirectory() as temp:
+            folder=Path(temp)
+            config=dict(data_dir=temp,codex_home=temp,output_dir=str(folder/'exports'))
+            with patch('tracker.cli.sync_metadata',return_value=[]),patch('tracker.cli.time.time',return_value=1000):
+                reconcile(config,include_code=False)
+            store=Store(folder/'metrics.sqlite')
+            try:
+                self.assertEqual(store.setting('collection_started_at'),1000)
+            finally:
+                store.close()
+            (folder/'installation.json').write_text(json.dumps(dict(installed_at=2000)),encoding='utf-8')
+            config.update(installed_at=2500,initial_since='1970-01-01T00:00:00+00:00')
+            with patch('tracker.cli.sync_metadata',return_value=[]),patch('tracker.cli.time.time',return_value=3000):
+                reconcile(config,include_code=False)
+            store=Store(folder/'metrics.sqlite')
+            try:
+                self.assertEqual(store.setting('collection_started_at'),1000)
+            finally:
+                store.close()
+
+    def test_legacy_config_and_installation_receipt_seed_collection_cutoff(self):
+        for legacy_config,receipt,expected in [(dict(installed_at=500),None,500),({},dict(installed_at=600),600)]:
+            with self.subTest(expected=expected),tempfile.TemporaryDirectory() as temp:
+                folder=Path(temp)
+                if receipt:
+                    (folder/'installation.json').write_text(json.dumps(receipt),encoding='utf-8')
+                config=dict(data_dir=temp,codex_home=temp,output_dir=str(folder/'exports'),**legacy_config)
+                with patch('tracker.cli.sync_metadata',return_value=[]),patch('tracker.cli.time.time',return_value=1000):
+                    reconcile(config,include_code=False)
+                store=Store(folder/'metrics.sqlite')
+                try:
+                    self.assertEqual(store.setting('collection_started_at'),expected)
+                finally:
+                    store.close()
+
+    def test_failed_scans_clear_previous_workspace_measurements(self):
+        for mode in ('snapshot-error','lookup-error','not-git'):
+            with self.subTest(mode=mode),tempfile.TemporaryDirectory() as temp:
+                config=dict(data_dir=temp,installed_at=0)
+                store=Store(Path(temp)/'db')
+                try:
+                    for tid in ('first','second'):
+                        store.thread(tid,dict(cwd='repository',last_record_at=10,workspace_lines_added=12,workspace_lines_removed=7,code_lines_added=12,code_lines_removed=7))
+                        if mode=='snapshot-error':
+                            file=baseline_path(config,tid)
+                            file.parent.mkdir(exist_ok=True)
+                            file.write_text(json.dumps(dict(root='repository',captured_at=1,complete=True,files={})),encoding='utf-8')
+                    store.db.commit()
+                    lookup=patch('tracker.cli.git_root',side_effect=TimeoutError('lookup')) if mode=='lookup-error' else patch('tracker.cli.git_root',return_value=None)
+                    with lookup,patch('tracker.cli.snapshot',side_effect=TimeoutError('scan')):
+                        refresh_code(store,config)
+                    for metadata in store.all_threads().values():
+                        for key in ('workspace_lines_added','workspace_lines_removed','code_lines_added','code_lines_removed'):
+                            self.assertIsNone(metadata[key],(mode,key))
+                    from tracker.export import build_rows
+                    rows,_=build_rows(store,now=20)
+                    self.assertTrue(all(row['workspace_lines_added'] is None and row['workspace_lines_removed'] is None for row in rows))
+                finally:
+                    store.close()
+
     def test_failed_repository_scan_is_not_retried_for_each_thread(self):
         with tempfile.TemporaryDirectory() as temp:
             config=dict(data_dir=temp,installed_at=0)

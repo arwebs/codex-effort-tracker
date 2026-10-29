@@ -144,6 +144,38 @@ def instance_lock(path):
         stream.close()
 
 
+def ensure_collection_started_at(store,config):
+    """Persist one cutoff independently of import windows and reinstall receipts."""
+    def timestamp(value):
+        try:
+            if isinstance(value,bool):
+                return None
+            parsed=epoch(value)
+            if parsed is None or not math.isfinite(parsed) or parsed<0:
+                return None
+            iso(parsed)
+            return parsed
+        except (OSError,ValueError,TypeError,OverflowError):
+            return None
+    existing=store.setting('collection_started_at')
+    if existing is not None:
+        result=timestamp(existing)
+        if result is None:
+            raise ValueError('Invalid persisted collection cutoff')
+        return result
+    legacy=timestamp(config.get('installed_at'))
+    if legacy is None:
+        try:
+            receipt=json.loads((Path(config['data_dir'])/'installation.json').read_text(encoding='utf-8-sig'))
+            legacy=timestamp(receipt.get('installed_at')) if isinstance(receipt,dict) else None
+        except (OSError,ValueError):
+            pass
+    cutoff=time.time() if legacy is None else legacy
+    store.db.execute('INSERT OR IGNORE INTO settings(key,value) VALUES(?,?)',('collection_started_at',json.dumps(cutoff)))
+    store.db.commit()
+    return store.setting('collection_started_at')
+
+
 def refresh_code(store,config):
     if not config.get('code_baselines',True):
         return
@@ -151,16 +183,20 @@ def refresh_code(store,config):
     snapshots={}
     roots={}
     failed_cwds=set()
+    cutoff=ensure_collection_started_at(store,config)
+    def unavailable(tid,reason='baseline_unavailable'):
+        store.thread(tid,dict(code_attribution=reason,workspace_lines_added=None,workspace_lines_removed=None,
+                              code_lines_added=None,code_lines_removed=None))
     for tid,meta in threads.items():
         # Only baseline threads seen during the installation window, never every historical checkout.
-        if not meta.get('cwd') or meta.get('parent_thread_id') or (meta.get('last_record_at') or 0)<config.get('installed_at',0):
+        if not meta.get('cwd') or meta.get('parent_thread_id') or (meta.get('last_record_at') or 0)<cutoff:
             continue
         path=baseline_path(config,tid)
         try:
             if not path.exists():
                 cwd=meta['cwd']
                 if cwd in failed_cwds:
-                    store.thread(tid,{'code_attribution':'baseline_unavailable'})
+                    unavailable(tid)
                     continue
                 if cwd not in roots:
                     failed_cwds.add(cwd)
@@ -168,18 +204,18 @@ def refresh_code(store,config):
                     failed_cwds.discard(cwd)
                 root=roots[cwd]
                 if root is None:
-                    store.thread(tid,{'code_attribution':'not_git_workspace'})
+                    unavailable(tid,'not_git_workspace')
                     continue
                 root=str(root)
                 if root not in snapshots:
                     snapshots[root]=None
                     snapshots[root]=snapshot(root)
                 if not snapshots[root]:
-                    store.thread(tid,{'code_attribution':'baseline_unavailable'})
+                    unavailable(tid)
                     continue
                 capture_baseline(config,tid,cwd,'observer_checkpoint',snapshot_value=snapshots[root])
             if not path.exists():
-                store.thread(tid,{'code_attribution':'not_git_workspace'})
+                unavailable(tid,'not_git_workspace')
                 continue
             before=json.loads(path.read_text(encoding='utf-8'))
             root=before['root']
@@ -187,14 +223,14 @@ def refresh_code(store,config):
                 snapshots[root]=None
                 snapshots[root]=snapshot(root)
             if snapshots[root] is None:
-                store.thread(tid,{'code_attribution':'baseline_unavailable'})
+                unavailable(tid)
                 continue
             added,removed=net_changes(before,snapshots[root])
             store.thread(tid,dict(workspace_lines_added=added,workspace_lines_removed=removed,
                                  code_baseline_at=before['captured_at'],code_attribution='workspace_checkpoint_unattributed',
                                  code_lines_added=None,code_lines_removed=None))
         except (OSError,ValueError,RuntimeError,TimeoutError):
-            store.thread(tid,{'code_attribution':'baseline_unavailable'})
+            unavailable(tid)
         finally:
             # Do not hold a writer lock while the next workspace is being scanned.
             store.db.commit()
@@ -212,6 +248,7 @@ def reconcile(config,include_code=True):
         def progress(stage):
             atomic_json(data_dir/'reconcile-progress.json',dict(at=iso(time.time()),stage=stage))
         try:
+            ensure_collection_started_at(store,config)
             progress('hooks')
             hook_warnings=drain_hooks(store,config)
             since=epoch(config.get('initial_since')) or 0
@@ -249,6 +286,7 @@ def watch(config):
         if (data_dir/'paused').exists():
             return
         store=Store(data_dir/'metrics.sqlite')
+        ensure_collection_started_at(store,config)
         store.setting('observer_started_at',time.time())
         store.setting('watch_pid',os.getpid())
         store.db.commit()
@@ -343,6 +381,7 @@ def main(argv=None):
     try:
         heartbeat=store.setting('heartbeat')
         status=dict(observer_running=bool(heartbeat and time.time()-heartbeat<20 and not (data_dir/'paused').exists()),
+                    collection_started_at=iso(store.setting('collection_started_at')),
                     paused=(data_dir/'paused').exists(),heartbeat=iso(heartbeat),last_sample=store.setting('last_sample'),
                     last_export=store.setting('last_export'),hook_events=store.db.execute('SELECT count(*) FROM hooks').fetchone()[0],
                     pending_hooks=len(list((data_dir/'inbox').glob('*.json'))),output_dir=config['output_dir'])

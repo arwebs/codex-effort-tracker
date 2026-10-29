@@ -1,10 +1,11 @@
 """Incremental adapter for locally observed Codex rollout formats."""
 import hashlib
 import json
+import math
 import sqlite3
 from compression import zstd
 from pathlib import Path
-from .metrics import epoch, prose_words
+from .metrics import epoch, iso, prose_words
 
 TOKEN_FIELDS = ('input_tokens', 'cached_input_tokens', 'cache_write_input_tokens', 'output_tokens', 'reasoning_output_tokens', 'total_tokens')
 
@@ -86,7 +87,7 @@ def ingest_file(store, path, tid):
                     raise ValueError('unsupported record')
                 normalize(store, tid, record, state, source, start)
                 records += 1
-            except (ValueError, TypeError, KeyError):
+            except (ValueError, TypeError, KeyError, OverflowError):
                 state['malformed_records'] = state.get('malformed_records', 0) + 1
     store.db.execute('INSERT OR REPLACE INTO files VALUES(?,?,?)', (source, offset, json.dumps(state)))
     store.thread(tid, {'last_record_at': state.get('last_record_at'), 'ingest_warnings': state.get('malformed_records', 0), 'history_boundary': state.get('cutoff'), 'ownership_incomplete': state.get('ownership_incomplete',False), 'adapter': 'local-rollout-v2'})
@@ -98,6 +99,11 @@ def normalize(store, tid, record, state, source, byte_offset):
     p = record['payload']
     typ, sub = record.get('type'), p.get('type')
     ts = epoch(record.get('timestamp'))
+    if ts is not None:
+        try:
+            iso(ts)
+        except (OSError,OverflowError) as exc:
+            raise ValueError('Unsupported record timestamp') from exc
     if typ == 'session_meta':
         if p.get('id') == tid and not state.get('own_meta'):
             state.update(own_meta=True, cutoff=p.get('subagent_history_start_ordinal'),
@@ -123,6 +129,25 @@ def normalize(store, tid, record, state, source, byte_offset):
             state['turn']=p.get('turn_id')
         else:
             return
+    # Validate nested values before modifying state or journaling observations.
+    if typ=='token_usage_record':
+        usage=p.get('usage',{})
+        if not isinstance(usage,dict):
+            raise ValueError('Unsupported token usage')
+        for key in TOKEN_FIELDS:
+            value=usage.get(key)
+            if value is not None and (isinstance(value,bool) or not isinstance(value,(int,float)) or not math.isfinite(value) or value<0):
+                raise ValueError('Unsupported token count')
+    if typ=='response_item' and sub=='message':
+        metadata=p.get('internal_chat_message_metadata_passthrough')
+        if metadata is not None and not isinstance(metadata,dict):
+            raise ValueError('Unsupported message metadata')
+        kinds=(metadata or {}).get('content_item_kinds')
+        if kinds is not None and (not isinstance(kinds,list) or any(not isinstance(kind,str) for kind in kinds)):
+            raise ValueError('Unsupported message provenance')
+        content=p.get('content',[])
+        if not isinstance(content,list) or any(not isinstance(item,dict) or not isinstance(item.get('text',''),str) for item in content):
+            raise ValueError('Unsupported message content')
     if ts is not None:
         state['last_record_at'] = max(ts, state.get('last_record_at') or ts)
     turn = p.get('turn_id') or state.get('turn')

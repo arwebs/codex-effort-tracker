@@ -4,7 +4,7 @@ The initial implementation and export-recovery changes were validated on Windows
 
 ## Automated checks
 
-The 36-test suite covers:
+The automated suite covers:
 
 - Inherited child history boundaries, duplicate usage records and message provenance.
 - Own/parallel agent intervals, session gaps, lower bounds and missing terminal events.
@@ -15,6 +15,11 @@ The 36-test suite covers:
 - Home/drive-root exclusions and real Windows process-tree timeout cleanup.
 - Shared snapshot reuse, failure caching and writer-lock release between workspaces.
 - Hook merge idempotence and single-instance collector locking.
+- Malformed nested transcript payload isolation, warning counts and subsequent exports.
+- Persistent collection-start cutoffs across backfill, restarts and installation receipt changes.
+- Clearing stale workspace measurements on direct and cached scan failures.
+
+The PR review revision passed all 41 tests on Windows with Python 3.14. The README settings, first reconciliation, status and dashboard-copy commands were also executed in an isolated source copy against synthetic metadata and a transcript: one thread, one turn and 110 tokens exported with no read errors. This check did not install hooks, start an observer or access personal Codex data.
 
 ## Browser and live recovery checks
 
