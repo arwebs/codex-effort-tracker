@@ -1,0 +1,11 @@
+{
+  "codex_home": "C:/Users/YOUR_USER/.codex",
+  "data_dir": "C:/path/to/codex-effort-tracker/local/state",
+  "output_dir": "C:/path/to/codex-effort-tracker/local/exports",
+  "initial_since": "2026-10-29T00:00:00-04:00",
+  "human_idle_seconds": 300,
+  "session_gap_seconds": 1800,
+  "sample_interval_seconds": 5,
+  "export_interval_seconds": 60,
+  "code_baselines": true
+}

@@ -1,0 +1,286 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Codex effort</title>
+<style>
+:root{--bg:#f5f3f0;--card:#fff;--ink:#272431;--muted:#716b78;--line:#e7e2eb;--purple:#7356c7;--teal:#149b9a;--warn:#9a6616}*{box-sizing:border-box}body{margin:0;background:linear-gradient(145deg,#f7f5f2,#f0eef7);color:var(--ink);font:14px system-ui,-apple-system,Segoe UI,sans-serif}main{max-width:1440px;margin:auto;padding:28px 28px 56px}header{display:flex;align-items:center;justify-content:space-between;gap:20px;margin-bottom:25px}h1{margin:0;font-size:30px;letter-spacing:-.04em}h2{font-size:16px;margin:0 0 14px}.sub{color:var(--muted);margin-top:5px}.actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.btn,select,input{font:inherit;border:1px solid var(--line);border-radius:9px;background:#fff;color:var(--ink);padding:9px 11px}.btn{cursor:pointer;border-color:#d9d0ec;background:#f9f7ff;color:#593eaa;font-weight:650}.btn:hover{background:#eee9ff}.badge{border-radius:20px;padding:6px 10px;background:#ebe8f2;color:var(--muted);white-space:nowrap}.badge.ok{background:#dcf4ec;color:#176e60}.grid{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-bottom:18px}.card{background:rgba(255,255,255,.92);border:1px solid var(--line);border-radius:15px;padding:17px;box-shadow:0 5px 18px #33205b09}.metric{font-size:26px;font-weight:720;letter-spacing:-.03em}.label{color:var(--muted);font-size:12px;margin-top:5px}.layout{display:grid;grid-template-columns:1.35fr .95fr;gap:18px}.wide{grid-column:1/-1}.toolbar{display:flex;gap:9px;flex-wrap:wrap;margin-bottom:12px}.toolbar input{min-width:220px;flex:1}.chart{min-height:210px;overflow:hidden}.chart svg{width:100%;height:205px;display:block}.chart text{font-size:11px;fill:var(--muted)}.chart .bar{fill:var(--purple)}.chart .bar:hover{fill:var(--teal)}.table-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:10px}table{width:100%;border-collapse:collapse;min-width:850px}th,td{text-align:left;padding:11px 12px;border-bottom:1px solid #eeeaf0;vertical-align:middle}th{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);background:#faf9fb}tr:last-child td{border-bottom:0}.name{border:0;background:none;padding:0;color:#5437a5;font:inherit;text-align:left;cursor:pointer;font-weight:650}.name:hover{text-decoration:underline}.muted{color:var(--muted)}.warn{color:var(--warn)}.quality{display:flex;gap:20px;flex-wrap:wrap;color:var(--muted)}.quality strong{display:block;color:var(--ink);font-size:17px}.human{border-left:3px solid var(--teal)}.pagination{display:flex;justify-content:space-between;align-items:center;margin-top:12px}.empty{text-align:center;color:var(--muted);padding:25px}.error{display:none;background:#fff2eb;border:1px solid #edc9b5;color:#8b421e;padding:12px;border-radius:10px;margin-bottom:16px}.error.show{display:block}.drawer{position:fixed;inset:0;background:#201a2b66;display:none;justify-content:flex-end;z-index:5}.drawer.open{display:flex}.panel{background:#fff;width:min(700px,96vw);height:100%;overflow:auto;padding:25px;box-shadow:-8px 0 30px #28173a25}.close{float:right;border:0;background:none;font-size:25px;cursor:pointer}.details{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin:18px 0}.detail{padding:10px;background:#f8f7fa;border-radius:8px}.detail b{display:block;color:var(--muted);font-size:11px;text-transform:uppercase}.detail span{display:block;margin-top:4px}.small{font-size:12px;color:var(--muted)}@media(max-width:900px){main{padding:20px 14px}.grid{grid-template-columns:repeat(2,1fr)}.layout{grid-template-columns:1fr}header{align-items:flex-start;flex-direction:column}.wide{grid-column:auto}}@media(max-width:500px){.grid{grid-template-columns:1fr}.details{grid-template-columns:1fr}}
+
+.eyebrow{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--purple);font-weight:700;margin-bottom:7px}
+.grid{grid-template-columns:repeat(5,minmax(0,1fr));margin-top:18px}.card{min-width:0;padding:20px}.label{margin:0 0 10px}.metric-note{font-size:11px;color:var(--muted);margin-top:9px;line-height:1.5}.metric-card:first-child{border-top:3px solid var(--purple)}.metric{font-size:29px}
+.small{line-height:1.6}.badge.warn{background:#fff0d9;color:var(--warn)}.btn:disabled{opacity:.45;cursor:default}:focus-visible{outline:3px solid #ae9bdc;outline-offset:3px}
+.toolbar{margin-top:20px;align-items:end}.control{display:flex;flex-direction:column;gap:5px;min-width:0}.control label{font-size:11px;color:var(--muted)}.control.search{flex:1;min-width:210px}.control input,.control select{width:100%}.toolbar input{min-width:0}
+.chart{min-height:235px;margin-top:15px}.chart svg{height:auto}.model-bars{display:grid;gap:13px}.model-label{display:flex;justify-content:space-between;gap:10px;font-size:12px;margin-bottom:5px;overflow-wrap:anywhere}.track{height:9px;border-radius:6px;background:#eeeaf6;overflow:hidden}.fill{height:100%;border-radius:6px;background:linear-gradient(90deg,#7255c4,#a795d8)}
+.human-values{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:15px;margin-top:18px}.human-value strong{font-size:23px;letter-spacing:-.03em;display:block}.human-value span{font-size:12px;color:var(--muted)}
+.numeric{font-variant-numeric:tabular-nums;white-space:nowrap}.thread-cell{max-width:300px}.name,.detail span,.panel h2{overflow-wrap:anywhere}.details{grid-template-columns:repeat(2,minmax(0,1fr))}.detail{min-width:0}.panel h2{padding-right:35px}.panel table{min-width:600px}.panel h3{font-size:14px;margin:24px 0 10px}.notice{background:#f4f0fc;padding:12px;border-radius:9px;font-size:12px;color:#655b79;line-height:1.6}.quality{margin-top:16px}.pagination{flex-wrap:wrap;gap:10px}.footer{margin-top:22px}
+@media(max-width:1100px){.grid{grid-template-columns:repeat(3,minmax(0,1fr))}}@media(max-width:700px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}.human-values{grid-template-columns:repeat(2,minmax(0,1fr))}.control{flex:1 1 140px}.control.search{flex-basis:100%}.card{padding:16px}.metric{font-size:26px}.panel{padding:20px}}@media(max-width:500px){.details{grid-template-columns:1fr}}
+
+.period-nav{display:flex;gap:18px;align-items:end;margin:0 0 10px;padding:15px 18px}.period-arrows{display:flex;align-items:center;gap:15px;flex:1;justify-content:center;min-width:0}.period-label{font-size:17px;font-weight:650;text-align:center;letter-spacing:-.02em}.period-nav input[type=date]{padding:9px 11px;border-radius:9px;border:1px solid var(--line);font:inherit;background:white;min-width:0}.period-nav .control{min-width:120px}.period-explanation{margin-bottom:8px}.arrow{font-size:18px;min-width:40px;padding:6px 10px}.period-nav .control label{font-size:11px;color:var(--muted)}
+@media(max-width:850px){.period-nav{flex-wrap:wrap;gap:12px}.period-arrows{order:-1;flex-basis:100%;justify-content:space-between}.period-nav .control{flex:1}.period-label{font-size:16px}.period-nav .btn{white-space:nowrap}}
+</style></head><body><main id="app">
+<header><div><div class="eyebrow">Local activity ledger</div><h1>Codex effort</h1><div class="sub" id="capture">Loading latest capture…</div><div class="small"><a href="./threads.csv" download>Threads CSV</a> · <a href="./turns.csv" download>Turns CSV</a></div></div><div class="actions"><span id="age" class="badge" role="status">No capture</span><button class="btn" id="refresh">Refresh</button><label class="small"><input type="checkbox" id="auto" checked aria-label="Auto-refresh every 60 seconds"> Auto-refresh 60s</label></div></header>
+<div id="error" class="error" role="alert"></div><section class="period-nav card" aria-label="Calendar period">
+<div class="control"><label for="period">View</label><select id="period"><option value="day">Daily</option><option value="week" selected>Weekly</option><option value="month">Monthly</option></select></div>
+<div class="period-arrows"><button class="btn arrow" id="period-back" aria-label="Previous week">←</button><div id="period-label" class="period-label" role="status"></div><button class="btn arrow" id="period-forward" aria-label="Next week">→</button></div>
+<div class="control"><label for="period-date">Go to date</label><input type="date" id="period-date"></div><button class="btn" id="period-current">Current period</button>
+</section><div class="small period-explanation">Weeks run Monday–Sunday. Time is split at Eastern calendar boundaries. Turns, messages and tokens are assigned to the turn’s start date.</div><div class="small" id="range"></div><section class="grid" id="metrics" aria-label="Filtered summary"></section>
+<div class="layout"><section class="card"><h2>When the work happened</h2><div class="small">Own agent hours in the selected period · America/New_York</div><div id="daily" class="chart"></div><div class="small">Overlapping turns per agent are merged and split across days. Daily views show hours; weekly and monthly views show days. Incomplete turns contribute observed lower bounds.</div></section><section class="card"><h2>Tokens by model</h2><div class="small">Known turn totals started in this period · missing values excluded</div><div id="models" class="chart"></div><div class="small">Cached input and reasoning output are already included in their parent counts.</div></section>
+<section class="card human wide"><h2>Your activity at the host</h2><div class="small">Unassigned host estimate for the selected period; may include other ChatGPT surfaces. Selected-thread attribution is unavailable.</div><div id="human" class="human-values"></div><div class="small" id="human-note" style="margin-top:12px"></div></section>
+<section class="card wide"><h2>Explore threads</h2><div class="small">Period totals for threads with recorded activity. Open a thread for period and lifetime details.</div><div class="toolbar"><div class="control search"><label for="search">Search</label><input type="search" id="search" placeholder="Name, ID, project or model…"></div><div class="control "><label for="project">Project</label><select id="project"><option value="">All projects</option></select></div><div class="control "><label for="scope">Agent scope</label><select id="scope"><option value="task">Roots + task agents</option><option value="root">Roots only</option><option value="sub">Task agents only</option><option value="internal">Internal approvals</option><option value="all">All agents</option></select></div><div class="control "><label for="model">Model</label><select id="model"><option value="">All models</option></select></div><div class="control "><label for="sort">Sort by</label><select id="sort"><option value="active">Active time</option><option value="tokens">Tokens</option><option value="recent">Recent activity</option><option value="name">Name</option></select></div><div class="control "><label for="size">Rows</label><select id="size"><option value="15">15</option><option value="30">30</option><option value="60">60</option></select></div></div><div class="table-wrap"><table><thead><tr><th>Thread</th><th>Project</th><th>Model / effort</th><th>Turns</th><th>Own active / idle</th><th>Tokens</th><th>Compactions</th><th>Latest status</th></tr></thead><tbody id="rows"></tbody></table></div><div class="pagination"><span id="count" class="small" role="status"></span><span><button class="btn" id="prev">Previous</button> <button class="btn" id="next">Next</button></span></div></section>
+<section class="card wide"><h2>Coverage &amp; interpretation</h2><div id="quality" class="quality"></div><p class="small">Active time is each agent’s own effort. Parallel agents can exceed elapsed wall time. Measured idle, provisional trailing idle and gaps with unknown status stay separate. A dash means unavailable; zero means measured zero. Workspace changes and relationships are lifetime details, not period totals. CSV downloads include all captured history.</p></section></div><p class="small footer">Local files only · the collector publishes a snapshot about once a minute · no external libraries or network requests.</p></main><div id="drawer" class="drawer"><article class="panel" role="dialog" aria-modal="true" aria-labelledby="detail-title"><button class="close" id="close" aria-label="Close">×</button><h2 id="detail-title">Thread details</h2><div id="detail-body"></div></article></div>
+<script>
+window.CodexDashboard = (() => {
+  'use strict';
+  const $ = id => document.getElementById(id), zone = 'America/New_York';
+  let data = {threads:[], turns:[], observer:{}}, page = 1, loading = false, returnFocus = null, detailId = null;
+  const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const number = v => v == null || v === '' || !Number.isFinite(Number(v)) ? null : Number(v);
+  const fmt = v => number(v) === null ? '—' : number(v).toLocaleString('en-US',{maximumFractionDigits:0});
+  const sec = v => number(v) === null ? '—' : (number(v)/3600).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})+' h';
+  const stamp = v => v && Number.isFinite(Date.parse(v)) ? new Intl.DateTimeFormat('en-US',{timeZone:zone,dateStyle:'medium',timeStyle:'short'}).format(new Date(v)) : '—';
+  const day = v => {
+    if (!v || !Number.isFinite(Date.parse(v))) return null;
+    const p = new Intl.DateTimeFormat('en-US',{timeZone:zone,year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date(v));
+    const get = type => p.find(x => x.type === type).value;
+    return `${get('year')}-${get('month')}-${get('day')}`;
+  };
+  const civil = key => new Date(key+'T00:00:00Z');
+  const keyOf = date => date.toISOString().slice(0,10);
+  const addDays = (key,n) => {const d=civil(key);d.setUTCDate(d.getUTCDate()+n);return keyOf(d);};
+  function midnight(key) {
+    const wanted=civil(key).getTime();let candidate=wanted;
+    // Convert Eastern calendar midnight using the browser's IANA timezone rules.
+    for(let i=0;i<3;i++){
+      const parts=new Intl.DateTimeFormat('en-US',{timeZone:zone,year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit',hourCycle:'h23'}).formatToParts(new Date(candidate));
+      const n=type=>Number(parts.find(p=>p.type===type).value);
+      const clock=Date.UTC(n('year'),n('month')-1,n('day'),n('hour'),n('minute'),n('second'));
+      candidate=wanted-(clock-candidate);
+    }
+    return candidate;
+  }
+  let anchor=day(new Date().toISOString());
+  function periodFor(mode,key) {
+    const d=civil(key);let first=key,next;
+    if(mode==='week'){first=addDays(key,-((d.getUTCDay()+6)%7));next=addDays(first,7);}
+    else if(mode==='month'){first=key.slice(0,7)+'-01';next=keyOf(new Date(Date.UTC(d.getUTCFullYear(),d.getUTCMonth()+1,1)));}
+    else next=addDays(first,1);
+    return {mode,first,next,start:midnight(first),end:midnight(next)};
+  }
+  const period=()=>periodFor($('period').value,anchor);
+  const clip=(start,end,p)=>Math.max(0,Math.min(end,p.end)-Math.max(start,p.start))/1000;
+  const startedIn=(t,p)=>{const s=Date.parse(t.started_at);return s>=p.start&&s<p.end;};
+  const endOf=t=>{
+    const s=Date.parse(t.started_at),recorded=Date.parse(t.completed_at||t.observed_through_at);
+    return Number.isFinite(recorded)&&recorded>=s?recorded:s+number(t.active_seconds)*1000;
+  };
+  function spansOf(turns) {
+    const spans=turns.filter(t=>Number.isFinite(Date.parse(t.started_at))&&number(t.active_seconds)!==null&&number(t.active_seconds)>=0).map(t=>[Date.parse(t.started_at),endOf(t)]).sort((a,b)=>a[0]-b[0]);
+    const merged=[];
+    for(const [s,e] of spans){const previous=merged.at(-1);if(previous&&s<=previous[1])previous[1]=Math.max(previous[1],e);else merged.push([s,e]);}
+    return merged;
+  }
+  function periodRows(rows,p=period()) {
+    const grouped=new Map();for(const turn of data.turns){if(!grouped.has(turn.thread_id))grouped.set(turn.thread_id,[]);grouped.get(turn.thread_id).push(turn);}
+    const counterKeys=['messages_sent','messages_received','nonhuman_messages','unclassified_messages','chat_words','compaction_count'];
+    const tokenKeys=['input_tokens','cached_input_tokens','cache_write_input_tokens','output_tokens','reasoning_output_tokens','total_tokens'];
+    return rows.flatMap(t=>{
+      const all=grouped.get(t.thread_id)||[],counted=all.filter(turn=>startedIn(turn,p)),spans=spansOf(all),ends=new Set(all.map(turn=>Date.parse(turn.completed_at)).filter(Number.isFinite));
+      const overlapping=all.filter(turn=>{const s=Date.parse(turn.started_at),v=number(turn.active_seconds);return Number.isFinite(s)&&v!==null&&clip(s,endOf(turn),p)>0;});
+      const unlocated=all.filter(turn=>!Number.isFinite(Date.parse(turn.started_at))&&[turn.completed_at,turn.observed_through_at].some(v=>Date.parse(v)>=p.start&&Date.parse(v)<p.end));
+      let idle=0;
+      for(let i=1;i<spans.length;i++){const a=spans[i-1][1],b=spans[i][0];if(ends.has(a)&&b-a<=(data.session_gap_seconds??1800)*1000)idle+=clip(a,b,p);}
+      const active=spans.length?spans.reduce((v,[s,e])=>v+clip(s,e,p),0):null;
+      const provisional=number(t.agent_idle_provisional_seconds),capture=Date.parse(data.generated_at);
+      const trailing=provisional===null?null:clip(capture-provisional*1000,capture,p);
+      const evidence=Date.parse(t.last_activity_at),unknownEvidence=unlocated.length>0||(!all.length&&evidence>=p.start&&evidence<p.end);
+      const unknownTiming=unknownEvidence||counted.some(turn=>number(turn.active_seconds)===null);
+      const lower=[...counted,...overlapping,...unlocated].some(turn=>turn.status==='incomplete'||String(turn.coverage).includes('lower_bound'));
+      if(!counted.length&&!overlapping.length&&!idle&&!trailing&&!unknownEvidence)return [];
+      const row={...t,agent_active_seconds:unknownTiming?null:active,agent_idle_seconds:unknownTiming?null:spans.length?idle:null,agent_idle_provisional_seconds:trailing,turns:unknownEvidence?null:counted.length,
+        incomplete_turns:counted.filter(x=>x.status==='incomplete').length,
+        coverage:[lower?'open_turn_lower_bound':null,unknownTiming?'timing_unavailable':null].filter(Boolean).join(';')||'recorded',
+        _periodTurns:counted,_overlapTurns:overlapping,_lifetime:t};
+      for(const k of counterKeys)row[k]=counted.length?sum(counted,k):unknownEvidence?null:0;
+      for(const k of tokenKeys)row[k]=counted.length?(counted.every(x=>number(x[k])!==null)?sum(counted,k):null):unknownEvidence?null:0;
+      const contexts=[...counted,...overlapping];
+      row.model=[...new Set(contexts.flatMap(modelsOf))].sort().join(';');
+      row.effort=[...new Set(contexts.flatMap(x=>String(x.effort||'').split(';').filter(Boolean)))].sort().join(';');
+      return [row];
+    });
+  }
+  const sum = (rows,key) => {const ns = rows.map(t => number(t[key])).filter(v => v !== null); return ns.length ? ns.reduce((a,b) => a+b,0) : null;};
+  const threads = () => data.threads.filter(t => t.row_type === 'thread' && t.thread_id);
+  const modelsOf = t => String(t.model || '').split(';').map(m => m.trim()).filter(Boolean);
+  const kindName = t => ({root:'Root thread',task_agent:'Task agent',internal_approval:'Internal approval'}[t.agent_kind] || t.agent_kind || 'Unclassified');
+  const selected = () => {
+    const q = $('search').value.trim().toLowerCase(), p = $('project').value, m = $('model').value, s = $('scope').value;
+    return threads().filter(t => {
+      const scope = s === 'all' || (s === 'task' && ['root','task_agent'].includes(t.agent_kind)) || (s === 'root' && t.agent_kind === 'root') || (s === 'sub' && t.agent_kind === 'task_agent') || (s === 'internal' && t.agent_kind === 'internal_approval');
+      const hay = [t.thread_name,t.thread_id,t.project_name,t.project_id,t.model,t.cwd].join(' ').toLowerCase();
+      return scope && (!q || hay.includes(q)) && (!p || (p === '__none__' ? !t.project_name : t.project_name === p)) && (!m || modelsOf(t).includes(m));
+    });
+  };
+  const selectedTurns = rows => {const ids = new Set(rows.map(t => t.thread_id)),p=period();return data.turns.filter(t => ids.has(t.thread_id)&&startedIn(t,p));};
+  function dailyValues(turns) {
+    const groups=new Map(),by=new Map();
+    for(const t of turns){
+      const start=Date.parse(t.started_at),active=number(t.active_seconds);
+      if(!Number.isFinite(start)||active===null||active<0)continue;
+      if(!groups.has(t.thread_id))groups.set(t.thread_id,[]);
+      groups.get(t.thread_id).push([start,start+active*1000]);
+    }
+    for(const spans of groups.values()){
+      spans.sort((a,b)=>a[0]-b[0]);const merged=[];
+      for(const [start,end] of spans){const previous=merged.at(-1);if(previous&&start<=previous[1])previous[1]=Math.max(previous[1],end);else merged.push([start,end]);}
+      for(const [start,end] of merged){const d=day(new Date(start).toISOString());by.set(d,(by.get(d)||0)+(end-start)/3600000);}
+    }
+    return [...by].sort(([a],[b])=>a.localeCompare(b));
+  }
+  function filters() {
+    function options(id,values,first,extra='') {
+      const saved = $(id).value;
+      $(id).innerHTML = `<option value="">${first}</option>${extra}`+values.map(v => `<option value="${esc(v)}">${esc(v)}</option>`).join('');
+      if ([...$(id).options].some(o => o.value === saved)) $(id).value = saved;
+    }
+    options('project',[...new Set(threads().map(t => t.project_name).filter(Boolean))].sort(),'All projects','<option value="__none__">Unassigned project</option>');
+    options('model',[...new Set(threads().flatMap(modelsOf))].sort(),'All models');
+  }
+  function metrics(rows) {
+    const counted=selectedTurns(rows),known=counted.filter(t=>number(t.total_tokens)!==null).length;
+    const tokens=counted.length?sum(counted,'total_tokens'):rows.length?0:null;
+    const activeKnown=rows.filter(t=>number(t.agent_active_seconds)!==null).length,idleKnown=rows.filter(t=>number(t.agent_idle_seconds)!==null).length;
+    const lower=rows.filter(t=>String(t.coverage).includes('lower_bound')).length;
+    const items = [
+      ['Own agent effort',sec(sum(rows,'agent_active_seconds')),`${activeKnown} of ${rows.length} with timing · ${lower} lower bounds`],
+      ['Measured agent idle',sec(sum(rows,'agent_idle_seconds')),`${idleKnown} of ${rows.length} with idle · provisional ${sec(sum(rows,'agent_idle_provisional_seconds'))}`],
+      ['Recorded tokens',fmt(tokens),`${known} of ${counted.length} started turns with token data`],
+      ['Turns',fmt(sum(rows,'turns')),`Messages sent ${fmt(sum(rows,'messages_sent'))} · received ${fmt(sum(rows,'messages_received'))}`],
+      ['Threads & agents',fmt(rows.length),`${fmt(sum(rows,'compaction_count'))} compactions · ${fmt(sum(rows,'chat_words'))} chat words`]
+    ];
+    $('metrics').innerHTML = items.map(([label,value,note]) => `<div class="card metric-card"><div class="label">${esc(label)}</div><div class="metric">${esc(value)}</div><div class="metric-note">${esc(note)}</div></div>`).join('');
+  }
+  function charts(rows) {
+    const turns=selectedTurns(rows),models = new Map();
+    for (const t of turns) {
+      const tokens = number(t.total_tokens);
+      if (tokens !== null) {const m = t.model || 'Unrecorded model'; models.set(m,(models.get(m)||0)+tokens);}
+    }
+    const p=period(),ids=new Set(rows.map(t=>t.thread_id)),groups=new Map();
+    for(const t of data.turns){if(ids.has(t.thread_id)){if(!groups.has(t.thread_id))groups.set(t.thread_id,[]);groups.get(t.thread_id).push(t);}}
+    const spans=[...groups.values()].flatMap(spansOf),bars=[];
+    if(p.mode==='day'){
+      const labels=new Intl.DateTimeFormat('en-US',{timeZone:zone,hour:'numeric',timeZoneName:'short'});
+      for(let s=p.start;s<p.end;s+=3600000){const slot={start:s,end:Math.min(s+3600000,p.end)};bars.push([labels.format(new Date(s)),spans.reduce((n,[a,b])=>n+clip(a,b,slot)/3600,0)]);}
+    }else{
+      for(let key=p.first;key<p.next;key=addDays(key,1)){const slot={start:midnight(key),end:midnight(addDays(key,1))};bars.push([key,spans.reduce((n,[a,b])=>n+clip(a,b,slot)/3600,0)]);}
+    }
+    if (!rows.length || !spans.length) $('daily').innerHTML = '<div class="empty">No recorded active time in this selection</div>';
+    else {
+      const max = Math.max(...bars.map(([,v]) => v),.01),bottom=175,width=Math.min(640,Math.max(320,$('daily').clientWidth)),step=(width-60)/bars.length,labelEvery=Math.ceil(bars.length/(width<420?5:10));
+      const ticks = [0,.5,1].map(r => `<line x1="45" y1="${bottom-r*135}" x2="${width-12}" y2="${bottom-r*135}" stroke="#eeeaf2"/><text x="38" y="${bottom-r*135+4}" text-anchor="end">${(max*r).toFixed(1)}</text>`).join('');
+      $('daily').innerHTML = `<svg viewBox="0 0 ${width} 215" role="img" aria-label="Agent hours in selected period"><title>Agent hours in selected period</title><desc>Overlapping turns per agent are merged and split at calendar boundaries. Vertical axis is hours, in America/New_York.</desc>`+ticks+bars.map(([d,v],i) => {
+        const x=45+i*step+step*.17,h=v/max*135;
+        return `<rect class="bar" x="${x}" y="${bottom-h}" width="${step*.66}" height="${h}" rx="3"><title>${esc(d)}: ${v.toFixed(3)} hours</title></rect>`+(i%labelEvery===0?`<text x="${x+step*.33}" y="195" text-anchor="middle">${esc(p.mode==='day'?d.replace(/ [A-Z]+$/,''):d.slice(5))}</text>`:'');
+      }).join('')+'</svg>';
+    }
+    const ms=[...models].sort((a,b) => b[1]-a[1]).slice(0,8),max=Math.max(...ms.map(([,v]) => v),1);
+    $('models').innerHTML = ms.length ? '<div class="model-bars">'+ms.map(([m,v]) => `<div><div class="model-label"><span>${esc(m)}</span><strong>${fmt(v)}</strong></div><div class="track" role="img" aria-label="${esc(m)}: ${fmt(v)} tokens"><div class="fill" style="width:${v/max*100}%"></div></div></div>`).join('')+'</div>' : '<div class="empty">No recorded tokens in this selection</div>';
+  }
+  function human() {
+    const p=period(),samples=(data.activity||[]).filter(t=>!t.thread_id&&clip(Date.parse(t.started_at),Date.parse(t.ended_at),p)>0),values={};
+    for(const t of samples)values[t.category]=(values[t.category]||0)+clip(Date.parse(t.started_at),Date.parse(t.ended_at),p);
+    $('human').innerHTML = [['Active estimate','active'],['Idle estimate','idle'],['Away','away'],['Unavailable','unavailable']].map(([label,key]) => `<div class="human-value"><strong>${esc(sec(samples.length?(values[key]||0):null))}</strong><span>${label}</span></div>`).join('');
+    $('human-note').textContent=samples.length?`Host observation in this period: ${sec(Object.values(values).reduce((a,b)=>a+b,0))}. Unobserved time is not inferred.`:'No timestamped host samples in this period. Historical activity cannot be reconstructed.';
+  }
+  function table(rows) {
+    const sort=$('sort').value,size=Number($('size').value),key=sort==='tokens'?'total_tokens':'agent_active_seconds';
+    const sorted=[...rows].sort((a,b) => sort==='name'?String(a.thread_name||a.thread_id).localeCompare(b.thread_name||b.thread_id):sort==='recent'?(Date.parse(b.last_activity_at)||0)-(Date.parse(a.last_activity_at)||0):(number(b[key])??-1)-(number(a[key])??-1));
+    const pages=Math.max(1,Math.ceil(sorted.length/size)); page=Math.min(Math.max(1,page),pages);
+    const visible=sorted.slice((page-1)*size,page*size);
+    $('rows').innerHTML = visible.length ? visible.map(t => `<tr><td class="thread-cell"><button class="name" data-id="${esc(t.thread_id)}">${esc(t.thread_name||t.thread_id)}</button><div class="small">${esc(kindName(t))}</div></td><td>${esc(t.project_name||'Unassigned')}</td><td>${esc(t.model||'—')}<div class="small">${esc(t.effort||'—')}</div></td><td>${fmt(t.turns)}</td><td class="numeric">${esc(sec(t.agent_active_seconds))}<div class="small">${esc(sec(t.agent_idle_seconds))} idle</div></td><td>${fmt(t.total_tokens)}</td><td>${fmt(t.compaction_count)}</td><td>${esc(t.status||'—')}</td></tr>`).join('') : '<tr><td colspan="8" class="empty">No matching threads. Try widening the filters.</td></tr>';
+    $('count').textContent=`${rows.length} threads · ${rows.length?(page-1)*size+1:0}–${Math.min(page*size,rows.length)} shown · page ${page} of ${pages}`;
+    $('prev').disabled=page===1; $('next').disabled=page===pages;
+  }
+  function quality(rows) {
+    const lower=rows.filter(t => number(t.incomplete_turns)>0 || String(t.coverage).includes('open_turn_lower_bound')).length;
+    const unknownTokens=rows.filter(t => number(t.total_tokens)===null).length;
+    const unknownCode=rows.filter(t => number(t.code_lines_added)===null || number(t.code_lines_removed)===null).length;
+    $('quality').innerHTML=[[lower,'threads with incomplete turns'],[unknownTokens,'threads without token totals'],[unknownCode,'threads without code attribution'],[data.observer?.hook_events,'hook receipts · all captures']].map(([v,label]) => `<div><strong>${fmt(v)}</strong><span>${esc(label)}</span></div>`).join('');
+  }
+  function capture() {
+    const age=(Date.now()-Date.parse(data.generated_at))/1000,heartbeat=Date.parse(data.observer?.heartbeat);
+    const live=data.observer?.running && Number.isFinite(heartbeat) && Date.now()-heartbeat<120000,stale=!Number.isFinite(age)||age>180;
+    $('capture').textContent=`Captured ${stamp(data.generated_at)} ET`;
+    $('age').textContent=stale?'Capture is stale':live?'Collector running':'Saved capture · collector offline';
+    $('age').className='badge '+(live&&!stale?'ok':'warn');
+    $('age').title=Number.isFinite(age)?`Snapshot age: ${Math.max(0,Math.floor(age))} seconds`:'Unknown snapshot age';
+    const p=period(),format=key=>new Intl.DateTimeFormat('en-US',{timeZone:'UTC',month:'short',day:'numeric',year:'numeric'}).format(civil(key));
+    $('period-label').textContent=p.mode==='day'?format(p.first):p.mode==='month'?new Intl.DateTimeFormat('en-US',{timeZone:'UTC',month:'long',year:'numeric'}).format(civil(p.first)):`${format(p.first)} – ${format(addDays(p.next,-1))}`;
+    $('period-date').value=anchor;
+    $('period-back').setAttribute('aria-label',`Previous ${p.mode}`);$('period-forward').setAttribute('aria-label',`Next ${p.mode}`);
+    $('range').textContent=`Selected ${p.mode} · ${p.first} through ${addDays(p.next,-1)} · America/New_York${p.end>Date.parse(data.generated_at)&&p.start<=Date.parse(data.generated_at)?' · partial period':''}`;
+  }
+  const field=(t,key,mode='text') => {
+    const value=mode==='seconds'?sec(t[key]):mode==='date'?stamp(t[key]):mode==='number'?fmt(t[key]):t[key]==null||t[key]===''?'—':t[key];
+    return `<div class="detail"><b>${esc(key.replaceAll('_',' '))}</b><span>${esc(value)}</span></div>`;
+  };
+  function detail(id,focus=true) {
+    const t=threads().find(t => t.thread_id===id); if(!t)return;
+    detailId=id; if(focus)returnFocus=document.activeElement;
+    const groups=[
+      ['Identity & relationships',['thread_id','parent_thread_id','root_thread_id','project_id','project_name','cwd','agent_kind','agent_role','agent_path','status'].map(k => [k,'text'])],
+      ['Timing',['first_started_at','last_activity_at','last_completed_at','observed_through_at'].map(k => [k,'date']).concat([['work_session_count','number']],['agent_active_seconds','agent_idle_seconds','agent_idle_provisional_seconds','inactive_gap_seconds','unknown_gap_seconds','human_active_estimated_seconds','human_idle_estimated_seconds','descendant_agent_active_seconds','descendant_internal_active_seconds','tree_active_elapsed_seconds'].map(k => [k,'seconds']))],
+      ['Conversation & agents',['messages_sent','messages_received','nonhuman_messages','unclassified_messages','agent_messages','turns','completed_turns','interrupted_turns','failed_turns','incomplete_turns','compaction_count','chat_words','agents_invoked','internal_agents_invoked'].map(k => [k,'number'])],
+      ['Model & token usage',['model','effort','model_effort_combinations'].map(k => [k,'text']).concat(['input_tokens','cached_input_tokens','cache_write_input_tokens','output_tokens','reasoning_output_tokens','total_tokens'].map(k => [k,'number']))],
+      ['Code & coverage',['code_lines_added','code_lines_removed','workspace_lines_added','workspace_lines_removed'].map(k => [k,'number']).concat([['code_baseline_at','date'],['code_attribution','text'],['coverage','text'],['human_coverage','text']])]
+    ];
+    $('detail-title').textContent=t.thread_name||'Thread details';
+    const last=data.turns.filter(turn => turn.thread_id===id).sort((a,b) => (Date.parse(b.started_at)||0)-(Date.parse(a.started_at)||0)).slice(0,10);
+    const scoped=periodRows([t])[0];
+    const summary=scoped?`<h3>Selected period</h3><div class="details">${[['agent_active_seconds','seconds'],['agent_idle_seconds','seconds'],['agent_idle_provisional_seconds','seconds'],['turns','number'],['messages_sent','number'],['messages_received','number'],['total_tokens','number'],['compaction_count','number'],['chat_words','number']].map(([key,mode])=>field(scoped,key,mode)).join('')}</div>`:'<p class="small">No recorded activity in this period.</p>';
+    $('detail-body').innerHTML=summary+'<h3>Lifetime thread details</h3><p class="notice">The fields below cover all captured history. Code changes, agent relationships and latest status are lifetime metadata. Own active time excludes descendants; descendant effort can overlap with tree elapsed time. Cached input and reasoning output are subsets of input and output.</p>'+groups.map(([title,fields]) => `<h3>${title}</h3><div class="details">${fields.map(([k,mode]) => field(t,k,mode)).join('')}</div>`).join('')+'<h3>Latest 10 turns · lifetime</h3><div class="table-wrap"><table><thead><tr><th>Started · ET</th><th>Model / effort</th><th>Full active</th><th>Tokens</th><th>Status</th></tr></thead><tbody>'+(last.length?last.map(turn => `<tr><td>${esc(stamp(turn.started_at))}</td><td>${esc(turn.model||'—')}<div class="small">${esc(turn.effort||'—')}</div></td><td>${esc(sec(turn.active_seconds))}</td><td>${fmt(turn.total_tokens)}</td><td>${esc(turn.status||'—')}<div class="small">${esc(turn.coverage||'')}</div></td></tr>`).join(''):'<tr><td colspan="5" class="empty">No recorded turns</td></tr>')+'</tbody></table></div>';
+    $('drawer').classList.add('open'); $('app').inert=true; document.body.style.overflow='hidden'; if(focus)$('close').focus();
+  }
+  function close() {
+    $('drawer').classList.remove('open'); $('app').inert=false; document.body.style.overflow=''; detailId=null;
+    if(returnFocus?.isConnected)returnFocus.focus();else $('search').focus();
+  }
+  function render() {const rows=periodRows(selected());metrics(rows);charts(rows);human();table(rows);quality(rows);capture();if(detailId)detail(detailId,false);}
+  function fail(message) {$('error').textContent=message;$('error').classList.add('show');}
+  function load() {
+    if(loading)return; loading=true; $('refresh').disabled=true;
+    const script=document.createElement('script'); window.CODEX_EFFORT_DATA=undefined;
+    const finish=() => {script.remove();loading=false;$('refresh').disabled=false;};
+    script.src='./dashboard-data.js?v='+Date.now();
+    script.onload=() => {
+      const next=window.CODEX_EFFORT_DATA;
+      if(!next || next.schema_version!==1 || !Array.isArray(next.threads) || !Array.isArray(next.turns) || !Number.isFinite(Date.parse(next.generated_at))) {fail('The snapshot is missing or has an unsupported format. The last successful view is retained.');finish();return;}
+      data=next;filters();render();$('error').classList.remove('show');finish();
+    };
+    script.onerror=() => {fail('Could not load dashboard-data.js. Keep it beside this page. The last successful view is retained.');finish();};
+    document.head.appendChild(script);
+  }
+  for(const id of ['search','project','scope','model','sort','size'])$(id).addEventListener('input',() => {page=1;render();});
+  $('refresh').onclick=load;$('prev').onclick=() => {page--;table(periodRows(selected()));};$('next').onclick=() => {page++;table(periodRows(selected()));};
+  const move=n=>{const p=period();anchor=p.mode==='month'?keyOf(new Date(Date.UTC(civil(p.first).getUTCFullYear(),civil(p.first).getUTCMonth()+n,1))):addDays(p.first,n*(p.mode==='week'?7:1));page=1;render();};
+  $('period-back').onclick=()=>move(-1);$('period-forward').onclick=()=>move(1);
+  $('period').onchange=()=>{page=1;render();};
+  $('period-date').onchange=()=>{if(/^\d{4}-\d{2}-\d{2}$/.test($('period-date').value)&&Number.isFinite(civil($('period-date').value).getTime())){anchor=$('period-date').value;page=1;render();}};
+  $('period-current').onclick=()=>{anchor=day(new Date().toISOString());page=1;render();};
+  $('rows').onclick=e => {const button=e.target.closest('button[data-id]');if(button)detail(button.dataset.id);};
+  $('close').onclick=close;$('drawer').onclick=e => {if(e.target===$('drawer'))close();};
+  document.addEventListener('keydown',e => {
+    if(!$('drawer').classList.contains('open'))return;
+    if(e.key==='Escape'){e.preventDefault();close();}
+    if(e.key==='Tab'){
+      const items=[...$('drawer').querySelectorAll('button,a[href],input,select,[tabindex="0"]')],first=items[0],last=items.at(-1);
+      if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus();}
+      else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus();}
+    }
+  });
+  setInterval(() => {if($('auto').checked)load();},60000);
+  setInterval(() => {if(data.generated_at)capture();},10000);
+  window.addEventListener('resize',()=>charts(periodRows(selected())));
+  load();return {esc,formatSeconds:sec,day,dailyValues,selected,selectedTurns,sum,periodFor,periodRows,spansOf,midnight,clip,render,load};
+})();
+
+</script>
+</body>
+</html>
