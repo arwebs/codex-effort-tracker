@@ -1,0 +1,29 @@
+# Machine-specific configuration and captured data
+settings.json
+.env
+.env.*
+local/
+state/
+exports/
+work/
+outputs/
+quarantined-hooks/
+*.sqlite
+*.sqlite-*
+*.db
+*.db-*
+*.csv
+*.jsonl
+*.jsonl.zst
+dashboard-data.js
+*.log
+*.tmp
+
+# Python and isolated worktrees
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.coverage
+.pytest_cache/
+.worktrees/
